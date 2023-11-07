@@ -40,7 +40,7 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
-
+// .........................................................
     app.get("/allservices", async (req, res) => {
       const query = req.params.id;
       console.log(query);
@@ -49,6 +49,13 @@ async function run() {
       res.send(result);
     });
 
+    app.post("/allservices", async (req, res) => {
+      const addService = req.body;
+      console.log(addService);
+      const result = await bloomCraft_All_Service_collection.insertOne(addService);
+      res.send(result);
+    });
+// .........................................................
     app.post("/bookings",async(req,res)=>{
       const newBookings = req.body;
       console.log(newBookings);
