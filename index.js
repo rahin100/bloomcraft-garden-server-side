@@ -1,6 +1,6 @@
 const express = require('express')
 const cors = require('cors')
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const app = express()
 const port = process.env.PORT || 5000
@@ -33,6 +33,9 @@ async function run() {
 
     const bookings_collection = client.db("bloomCraft").collection("bookings")
 
+ 
+
+// ...........................................................
     app.get("/services", async (req, res) => {
       const query = req.params.id;
       console.log(query);
@@ -41,6 +44,18 @@ async function run() {
       res.send(result);
     });
 // .........................................................
+//email ....
+    app.get("/allservices", async (req, res) => {
+      console.log(req.query.serviceEmail);
+      let query = {}
+      if(req.query?.serviceEmail){
+        query = {serviceEmail: req.query?.serviceEmail}
+      }
+      const cursor = bloomCraft_All_Service_collection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     app.get("/allservices", async (req, res) => {
       const query = req.params.id;
       console.log(query);
@@ -55,6 +70,33 @@ async function run() {
       const result = await bloomCraft_All_Service_collection.insertOne(addService);
       res.send(result);
     });
+
+    app.put("/allservices/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const options = { upsert: true };
+      const updateService = req.body;
+      console.log(updateService);
+      const updateData = {
+        $set:{
+          serviceImage: updateService.serviceImage,
+          serviceName: updateService.serviceName,
+          serviceProviderName: updateService.serviceProviderName,
+          serviceEmail: updateService.serviceEmail,
+          serviceArea: updateService.serviceArea,
+          serviceDescription: updateService.serviceDescription,
+          servicePrice: updateService.servicePrice,
+          serviceProviderImage: updateService.serviceProviderImage
+        }
+      }
+      const result = await bloomCraft_All_Service_collection.updateOne(
+        filter,
+        updateData,
+        options
+        )
+      res.send(result)
+  
+    });
 // .........................................................
     app.post("/bookings",async(req,res)=>{
       const newBookings = req.body;
@@ -63,7 +105,7 @@ async function run() {
       res.send(result);
     })
 
-
+    
 
 
 
