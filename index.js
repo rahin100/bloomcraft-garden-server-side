@@ -29,6 +29,10 @@ async function run() {
 
     const bloomCraft_Service_collection = client.db("bloomCraft").collection("services")
 
+    const bloomCraft_All_Service_collection = client.db("bloomCraft").collection("allservices")
+
+    const bookings_collection = client.db("bloomCraft").collection("bookings")
+
     app.get("/services", async (req, res) => {
       const query = req.params.id;
       console.log(query);
@@ -36,6 +40,21 @@ async function run() {
       const result = await cursor.toArray();
       res.send(result);
     });
+
+    app.get("/allservices", async (req, res) => {
+      const query = req.params.id;
+      console.log(query);
+      const cursor = bloomCraft_All_Service_collection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.post("/bookings",async(req,res)=>{
+      const newBookings = req.body;
+      console.log(newBookings);
+      const result = await bookings_collection.insertOne(newBookings);
+      res.send(result);
+    })
 
 
 
