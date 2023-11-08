@@ -52,13 +52,9 @@ async function run() {
 
 
 
-    const bloomCraft_Service_collection = client
-      .db("bloomCraft")
-      .collection("services");
+    const bloomCraft_Service_collection = client.db("bloomCraft").collection("services");
 
-    const bloomCraft_All_Service_collection = client
-      .db("bloomCraft")
-      .collection("allservices");
+    const bloomCraft_All_Service_collection = client.db("bloomCraft").collection("allservices");
 
     const bookings_collection = client.db("bloomCraft").collection("bookings");
 
@@ -160,6 +156,15 @@ async function run() {
       const newBookings = req.body;
       console.log(newBookings);
       const result = await bookings_collection.insertOne(newBookings);
+      res.send(result);
+    });
+    app.get("/bookings", async (req, res) => {
+      let query = {};
+      if (req.query?.serviceEmail) {
+        query = { serviceEmail: req.query?.serviceEmail };
+      }
+      const cursor = bookings_collection.find(query);
+      const result = await cursor.toArray();
       res.send(result);
     });
 
