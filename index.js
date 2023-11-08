@@ -1,17 +1,21 @@
 const express = require("express");
 const cors = require("cors");
+require("dotenv").config();
 const jwt = require("jsonwebtoken");
 var cookieParser = require('cookie-parser')
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-require("dotenv").config();
+
 const app = express();
 const port = process.env.PORT || 5000;
 
 //middleware
+
+
 app.use(cors(
   {
-    origin:["http://localhost:5173"],
-    credentials:true
+    origin: ['http://localhost:5175','https://gardening-react-project.web.app','https://gardening-react-project.firebaseapp.com'],
+    credentials:true,
+  
   }
 ));
 app.use(express.json());
@@ -31,7 +35,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     //jwt middleware
     const verify = async(req,res,next)=>{
@@ -42,12 +46,13 @@ async function run() {
       }
       jwt.verify(token,process.env.SECRET,(err,decode)=>{
         if(err){
-          res.status(403).send({status: "unAuthorized Access", code: "403"})
+          return res.status(401).send({status: "unAuthorized Access", code: "403"})
         }else{
           req.decode = decode
+          next()
         }
       })
-      next()
+      
     }
 
 
@@ -63,11 +68,12 @@ async function run() {
       const user = req.body;
       // console.log("user for token", user);
       const token = jwt.sign(user, process.env.SECRET, {expiresIn: "1h"})
-      const expirationDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      // const expirationDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
      res.cookie("token",token,{
       httpOnly:true,
-      secure:false,
-      expires:expirationDate
+      secure: process.env.NODE_ENV === 'production', 
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+      // expires:expirationDate
       
      }).send({msg:"Succeed",token})
       // res.send({user, token})
@@ -89,6 +95,7 @@ async function run() {
       console.log(req.decode)
 
       console.log(req.query.serviceEmail);
+
       let query = {};
       if (req.query?.serviceEmail) {
         query = { serviceEmail: req.query?.serviceEmail };
@@ -168,8 +175,22 @@ async function run() {
       res.send(result);
     });
 
+    app.patch("/bookings/:id",async(req,res)=>{
+      const id = req.params.id
+      const filter = {_id: new ObjectId(id)}
+      const updateBooking = req.body
+      console.log(updateBooking)
+      const updateDoc = {
+        $set: {
+          status : updateBooking.status
+        },
+      };
+      const result = await bookings_collection.updateOne(filter,updateDoc)
+      res.send(result)
+    })
+
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
